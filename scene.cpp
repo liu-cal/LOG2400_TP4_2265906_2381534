@@ -39,9 +39,18 @@ void Scene::cmd_list()
         std::cout << "\nNuages:\n";
         for (const auto &c : clouds)
         {
-            std::cout << "CloudID=" << c.id << " textureIndex=" << c.textureIndex << " pts:";
-            for (int pid : c.pointIds)
-                std::cout << pid << " ";
+            std::cout << "Nuage '" << tm.get(c.textureIndex) << "' contient les points: ";
+            for (size_t i = 0; i < c.pointIds.size(); i++)
+            {
+                if (i == c.pointIds.size() - 1)
+                {
+                    std::cout << c.pointIds[i];
+                }
+                else
+                {
+                    std::cout << c.pointIds[i] << ", ";
+                }
+            }
             std::cout << "\n";
         }
     }
@@ -49,7 +58,7 @@ void Scene::cmd_list()
 
 void Scene::cmd_display(std::unique_ptr<DisplayStrategy> dsp)
 {
-    dsp->draw(points, clouds, tm);
+    dsp->draw(points, clouds, surfaces, tm);
 }
 
 void Scene::cmd_merge_createCloud(const std::vector<int> &ids)
@@ -64,7 +73,6 @@ void Scene::cmd_merge_createCloud(const std::vector<int> &ids)
             points[pid].texture = tm.get(c.textureIndex);
     }
     clouds.push_back(c);
-    std::cout << "Cloud créé id=" << c.id << " avec " << c.pointIds.size() << " points, texture '" << tm.get(c.textureIndex) << "'\n";
 }
 
 bool Scene::cmd_movePoint(int id, int nx, int ny)
@@ -91,12 +99,11 @@ bool Scene::cmd_deletePoint(int id)
 
 void Scene::cmd_buildSurface(std::unique_ptr<SurfaceBuilder> builder)
 {
+    surfaces.clear();
+
     for (const auto &c : clouds)
     {
         auto poly = builder->build(c, points);
-        std::cout << "Surface pour Cloud " << c.id << " : ";
-        for (int pid : poly)
-            std::cout << pid << " ";
-        std::cout << "\n";
+        surfaces.push_back(poly);
     }
 }

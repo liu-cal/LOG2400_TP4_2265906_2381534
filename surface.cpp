@@ -10,7 +10,7 @@ std::vector<int> SurfaceByIDOrder::build(const Cloud &cloud, const std::vector<P
     return ids;
 }
 
-std::vector<int> SurfaceByNearest ::build(const Cloud &cloud, const std::vector<Point> &allPoints)
+std::vector<int> SurfaceByNearest::build(const Cloud &cloud, const std::vector<Point> &allPoints)
 {
     std::vector<int> remaining = cloud.pointIds;
     std::vector<int> result;

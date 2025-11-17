@@ -7,31 +7,57 @@
 
 void tracerLigne(std::vector<std::vector<char>> &grille, int x0, int y0, int x1, int y1)
 {
-    int lignes = std::abs(y1 - y0);
-    if (lignes == 0)
+    int dx = x1 - x0;
+    int dy = y1 - y0;
+    int steps = std::max(abs(dx), abs(dy));
+    for (int i = 1; i < steps; ++i)
     {
-        lignes = std::abs(x1 - x0);
-        for (int i = 0; i <= lignes; ++i)
+        double t = (double)i / steps;
+        int x = std::round(x0 + t * dx);
+        int y = std::round(y0 + t * dy);
+        if (x >= 0 && x < LARGEUR && y >= 0 && y < HAUTEUR)
         {
-            int x = (x0 < x1) ? x0 + i : x0 - i;
-            if (y1 >= 0 && y1 < HAUTEUR && x >= 0 && x < LARGEUR)
-                grille[y1][x] = '/';
-        }
-    }
-    else
-    {
-        for (int i = 0; i <= lignes; ++i)
-        {
-            double t = (double)i / lignes;
-            int x = (int)std::round(x0 + t * (x1 - x0));
-            int y = (int)std::round(y0 + t * (y1 - y0));
-            if (x >= 0 && x < LARGEUR && y >= 0 && y < HAUTEUR)
-                grille[y][x] = '/';
+            if (grille[y][x] == ' ')
+            {
+                if (dx == 0)
+                    grille[y][x] = '|';
+                else if (dy == 0)
+                    grille[y][x] = '-';
+                else
+                    grille[y][x] = '/';
+            }
         }
     }
 }
 
-void DisplayTextures::draw(const std::vector<Point> &points, const std::vector<Cloud> &clouds, const TextureManager &tm)
+void tracerSurfaces(
+    std::vector<std::vector<char>> &grille,
+    const std::vector<std::vector<int>> &surfaces,
+    const std::vector<Point> &points)
+{
+    for (const auto &poly : surfaces)
+    {
+        if (poly.size() < 2)
+            continue;
+
+        for (size_t i = 0; i < poly.size(); ++i)
+        {
+            int idA = poly[i];
+            int idB = poly[(i + 1) % poly.size()];
+
+            const Point &a = points[idA];
+            const Point &b = points[idB];
+
+            tracerLigne(grille, a.x, a.y, b.x, b.y);
+        }
+    }
+}
+
+void DisplayTextures::draw(
+    const std::vector<Point> &points,
+    const std::vector<Cloud> &clouds,
+    const std::vector<std::vector<int>> &surfaces,
+    const TextureManager &tm)
 {
     std::vector<std::vector<char>> grille(HAUTEUR, std::vector<char>(LARGEUR, ' '));
     std::vector<char> mapTexture(points.size(), '.');
@@ -67,7 +93,11 @@ void DisplayTextures::draw(const std::vector<Point> &points, const std::vector<C
     }
 }
 
-void DisplayIDs::draw(const std::vector<Point> &points, const std::vector<Cloud> &clouds, const TextureManager &tm)
+void DisplayIDs::draw(
+    const std::vector<Point> &points,
+    const std::vector<Cloud> &clouds,
+    const std::vector<std::vector<int>> &surfaces,
+    const TextureManager &tm)
 {
     std::vector<std::vector<char>> grille(HAUTEUR, std::vector<char>(LARGEUR, ' '));
     for (const auto &p : points)
@@ -78,6 +108,9 @@ void DisplayIDs::draw(const std::vector<Point> &points, const std::vector<Cloud>
         if (p.x >= 0 && p.x < LARGEUR && p.y >= 0 && p.y < HAUTEUR)
             grille[p.y][p.x] = ch;
     }
+
+    tracerSurfaces(grille, surfaces, points);
+
     for (int y = HAUTEUR - 1; y >= 0; --y)
     {
         for (int x = 0; x < LARGEUR; ++x)

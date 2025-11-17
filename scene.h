@@ -28,6 +28,7 @@ public:
 private:
     std::vector<Point> points;
     std::vector<Cloud> clouds;
+    std::vector<std::vector<int>> surfaces;
     TextureManager tm;
     int nextCloudId = 0;
 };
