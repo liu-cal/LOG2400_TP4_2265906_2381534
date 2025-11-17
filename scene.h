@@ -9,11 +9,6 @@
 
 class Scene
 {
-    std::vector<Point> points;
-    std::vector<Cloud> clouds;
-    TextureManager tm;
-    int nextCloudId = 0;
-
 public:
     Scene() = default;
 
@@ -29,4 +24,10 @@ public:
     const std::vector<Point> &getPoints() const { return points; }
     const std::vector<Cloud> &getClouds() const { return clouds; }
     TextureManager &getTextureManager() { return tm; }
+
+private:
+    std::vector<Point> points;
+    std::vector<Cloud> clouds;
+    TextureManager tm;
+    int nextCloudId = 0;
 };

@@ -6,11 +6,15 @@
 #include "display.h"
 #include "display.h"
 #include "surface.h"
+#include <windows.h>
 
 using namespace std;
 
 int main(int argc, char *argv[])
 {
+    SetConsoleOutputCP(CP_UTF8);
+    SetConsoleCP(CP_UTF8);
+
     string args;
     // On accepte des points en entrée.
     if (argc > 1)
@@ -76,7 +80,7 @@ int main(int argc, char *argv[])
 
         case 'f':
         {
-            std::cout << "Entrez les IDs des points à fusionner séparés par des espaces:\n> ";
+            std::cout << "IDs des points à fusionner dans un nuage (ex: 0 2 4): ";
             std::string line;
             std::getline(std::cin, line);
             std::istringstream iss(line);
@@ -90,24 +94,31 @@ int main(int argc, char *argv[])
 
         case 'd':
         {
-            std::cout << "Entrez ID puis nouvelle position x y:\n> ";
+            std::cout << "ID du point à déplacer: ";
             std::string line;
             std::getline(std::cin, line);
+            int id = std::stoi(line);
+
+            std::cout << "Nouvelle position (x y): ";
+            int x, y;
+            std::getline(std::cin, line);
             std::istringstream iss(line);
-            int id, x, y;
-            if (iss >> id >> x >> y)
+
+            if (iss >> x >> y)
             {
                 if (!scene.cmd_movePoint(id, x, y))
                     std::cout << "ID invalide\n";
             }
             else
+            {
                 std::cout << "Format invalide\n";
+            }
             break;
         }
 
         case 's':
         {
-            std::cout << "Entrez ID du point à supprimer:\n> ";
+            std::cout << "ID du point à supprimer: ";
             std::string line;
             std::getline(std::cin, line);
             int id = std::stoi(line);

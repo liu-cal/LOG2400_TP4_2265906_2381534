@@ -29,6 +29,8 @@ void Scene::cmd_list()
     std::cout << "Liste:\n";
     for (const auto &p : points)
     {
+        if (!p.active)
+            continue;
         std::cout << p.id << ": " << "(" << p.x << "," << p.y << ") textures: '" << p.texture << "'\n";
     }
 

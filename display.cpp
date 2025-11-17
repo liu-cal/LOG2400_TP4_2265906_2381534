@@ -56,7 +56,7 @@ void DisplayTextures::draw(const std::vector<Point> &points, const std::vector<C
         if (!p.active)
             continue;
         if (p.x >= 0 && p.x < LARGEUR && p.y >= 0 && p.y < HAUTEUR)
-            grille[p.y][p.x] = (mapTexture[p.id] == '.' ? '.' : mapTexture[p.id]);
+            grille[p.y][p.x] = (mapTexture[p.id] == '\0' ? '.' : mapTexture[p.id]);
     }
 
     for (int y = HAUTEUR - 1; y >= 0; --y)
