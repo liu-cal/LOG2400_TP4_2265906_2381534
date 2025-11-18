@@ -5,7 +5,7 @@ struct Point
 {
     int id;
     int x, y;
-    char texture;
+    std::string texture;
     bool active;
 
     Point(int id_, int x_, int y_)

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cmath>
 
-void tracerLigne(std::vector<std::vector<char>> &grille, int x0, int y0, int x1, int y1)
+void tracerLigne(std::vector<std::vector<std::string>> &grille, int x0, int y0, int x1, int y1)
 {
     int dx = x1 - x0;
     int dy = y1 - y0;
@@ -17,7 +17,7 @@ void tracerLigne(std::vector<std::vector<char>> &grille, int x0, int y0, int x1,
         int y = std::round(y0 + t * dy);
         if (x >= 0 && x < LARGEUR && y >= 0 && y < HAUTEUR)
         {
-            if (grille[y][x] == ' ')
+            if (grille[y][x] == " ")
             {
                 if (dx == 0)
                     grille[y][x] = '|';
@@ -31,7 +31,7 @@ void tracerLigne(std::vector<std::vector<char>> &grille, int x0, int y0, int x1,
 }
 
 void tracerSurfaces(
-    std::vector<std::vector<char>> &grille,
+    std::vector<std::vector<std::string>> &grille,
     const std::vector<std::vector<int>> &surfaces,
     const std::vector<Point> &points)
 {
@@ -59,8 +59,8 @@ void DisplayTextures::draw(
     const std::vector<std::vector<int>> &surfaces,
     const TextureManager &tm)
 {
-    std::vector<std::vector<char>> grille(HAUTEUR, std::vector<char>(LARGEUR, ' '));
-    std::vector<char> mapTexture(points.size(), '.');
+    std::vector<std::vector<std::string>> grille(HAUTEUR, std::vector<std::string>(LARGEUR, ""));
+    std::vector<std::string> mapTexture(points.size(), "");
     for (const auto &p : points)
     {
         if (p.id >= 0 && p.id < (int)points.size())
@@ -73,7 +73,7 @@ void DisplayTextures::draw(
         for (int pid : c.pointIds)
         {
             if (pid >= 0 && pid < (int)points.size())
-                mapTexture[pid] = t;
+                mapTexture[pid] += t;
         }
     }
 
@@ -82,7 +82,7 @@ void DisplayTextures::draw(
         if (!p.active)
             continue;
         if (p.x >= 0 && p.x < LARGEUR && p.y >= 0 && p.y < HAUTEUR)
-            grille[p.y][p.x] = (mapTexture[p.id] == '\0' ? '.' : mapTexture[p.id]);
+            grille[p.y][p.x] = (mapTexture[p.id] == "" ? "." : mapTexture[p.id]);
     }
 
     for (int y = HAUTEUR - 1; y >= 0; --y)
@@ -99,7 +99,7 @@ void DisplayIDs::draw(
     const std::vector<std::vector<int>> &surfaces,
     const TextureManager &tm)
 {
-    std::vector<std::vector<char>> grille(HAUTEUR, std::vector<char>(LARGEUR, ' '));
+    std::vector<std::vector<std::string>> grille(HAUTEUR, std::vector<std::string>(LARGEUR, " "));
     for (const auto &p : points)
     {
         if (!p.active)
