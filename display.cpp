@@ -5,16 +5,18 @@
 #include <algorithm>
 #include <cmath>
 
-void tracerLigne(std::vector<std::vector<std::string>> &grille, int x0, int y0, int x1, int y1)
+using namespace std;
+
+void tracerLigne(vector<vector<string>> &grille, int x0, int y0, int x1, int y1)
 {
     int dx = x1 - x0;
     int dy = y1 - y0;
-    int steps = std::max(abs(dx), abs(dy));
+    int steps = max(abs(dx), abs(dy));
     for (int i = 1; i < steps; ++i)
     {
         double t = (double)i / steps;
-        int x = std::round(x0 + t * dx);
-        int y = std::round(y0 + t * dy);
+        int x = round(x0 + t * dx);
+        int y = round(y0 + t * dy);
         if (x >= 0 && x < LARGEUR && y >= 0 && y < HAUTEUR)
         {
             if (grille[y][x] == " ")
@@ -31,9 +33,9 @@ void tracerLigne(std::vector<std::vector<std::string>> &grille, int x0, int y0, 
 }
 
 void tracerSurfaces(
-    std::vector<std::vector<std::string>> &grille,
-    const std::vector<std::vector<int>> &surfaces,
-    const std::vector<Point> &points)
+    vector<vector<string>> &grille,
+    const vector<vector<int>> &surfaces,
+    const vector<Point> &points)
 {
     for (const auto &poly : surfaces)
     {
@@ -54,13 +56,13 @@ void tracerSurfaces(
 }
 
 void DisplayTextures::draw(
-    const std::vector<Point> &points,
-    const std::vector<Cloud> &clouds,
-    const std::vector<std::vector<int>> &surfaces,
+    const vector<Point> &points,
+    const vector<Cloud> &clouds,
+    const vector<vector<int>> &surfaces,
     const TextureManager &tm)
 {
-    std::vector<std::vector<std::string>> grille(HAUTEUR, std::vector<std::string>(LARGEUR, ""));
-    std::vector<std::string> mapTexture(points.size(), "");
+    vector<vector<string>> grille(HAUTEUR, vector<string>(LARGEUR, " "));
+    vector<string> mapTexture(points.size(), "");
     for (const auto &p : points)
     {
         if (p.id >= 0 && p.id < (int)points.size())
@@ -88,18 +90,18 @@ void DisplayTextures::draw(
     for (int y = HAUTEUR - 1; y >= 0; --y)
     {
         for (int x = 0; x < LARGEUR; ++x)
-            std::cout << grille[y][x];
-        std::cout << '\n';
+            cout << grille[y][x];
+        cout << '\n';
     }
 }
 
 void DisplayIDs::draw(
-    const std::vector<Point> &points,
-    const std::vector<Cloud> &clouds,
-    const std::vector<std::vector<int>> &surfaces,
+    const vector<Point> &points,
+    const vector<Cloud> &clouds,
+    const vector<vector<int>> &surfaces,
     const TextureManager &tm)
 {
-    std::vector<std::vector<std::string>> grille(HAUTEUR, std::vector<std::string>(LARGEUR, " "));
+    vector<vector<string>> grille(HAUTEUR, vector<string>(LARGEUR, " "));
     for (const auto &p : points)
     {
         if (!p.active)
@@ -114,7 +116,7 @@ void DisplayIDs::draw(
     for (int y = HAUTEUR - 1; y >= 0; --y)
     {
         for (int x = 0; x < LARGEUR; ++x)
-            std::cout << grille[y][x];
-        std::cout << '\n';
+            cout << grille[y][x];
+        cout << '\n';
     }
 }

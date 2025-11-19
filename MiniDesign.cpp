@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
              << "c1 - Créer les surfaces selon l'ordre des IDs\n"
              << "c2 - Créer les surfaces selon la distance minimale\n"
              << "q  - Quitter\n> ";
-        getline(std::cin, cmd);
+        getline(cin, cmd);
 
         switch (cmd[0])
         {
@@ -70,22 +70,22 @@ int main(int argc, char *argv[])
         case 'o':
         {
             if (cmd == "o1")
-                scene.cmd_display(std::make_unique<DisplayTextures>());
+                scene.cmd_display(make_unique<DisplayTextures>());
             else if (cmd == "o2")
-                scene.cmd_display(std::make_unique<DisplayIDs>());
+                scene.cmd_display(make_unique<DisplayIDs>());
             else
-                std::cout << "Commande inconnue\n";
+                cout << "Commande inconnue\n";
             break;
         }
 
         case 'f':
         {
-            std::cout << "IDs des points à fusionner dans un nuage (ex: 0 2 4): ";
-            std::string line;
-            std::getline(std::cin, line);
-            std::istringstream iss(line);
+            cout << "IDs des points à fusionner dans un nuage (ex: 0 2 4): ";
+            string line;
+            getline(cin, line);
+            istringstream iss(line);
             int id;
-            std::vector<int> ids;
+            vector<int> ids;
             while (iss >> id)
                 ids.push_back(id);
             scene.cmd_merge_createCloud(ids);
@@ -94,52 +94,52 @@ int main(int argc, char *argv[])
 
         case 'd':
         {
-            std::cout << "ID du point à déplacer: ";
-            std::string line;
-            std::getline(std::cin, line);
-            int id = std::stoi(line);
+            cout << "ID du point à déplacer: ";
+            string line;
+            getline(cin, line);
+            int id = stoi(line);
 
-            std::cout << "Nouvelle position (x y): ";
+            cout << "Nouvelle position (x y): ";
             int x, y;
-            std::getline(std::cin, line);
-            std::istringstream iss(line);
+            getline(cin, line);
+            istringstream iss(line);
 
             if (iss >> x >> y)
             {
                 if (!scene.cmd_movePoint(id, x, y))
-                    std::cout << "ID invalide\n";
+                    cout << "ID invalide\n";
             }
             else
             {
-                std::cout << "Format invalide\n";
+                cout << "Format invalide\n";
             }
             break;
         }
 
         case 's':
         {
-            std::cout << "ID du point à supprimer: ";
-            std::string line;
-            std::getline(std::cin, line);
-            int id = std::stoi(line);
+            cout << "ID du point à supprimer: ";
+            string line;
+            getline(cin, line);
+            int id = stoi(line);
             if (!scene.cmd_deletePoint(id))
-                std::cout << "ID invalide\n";
+                cout << "ID invalide\n";
             break;
         }
 
         case 'c':
         {
             if (cmd == "c1")
-                scene.cmd_buildSurface(std::make_unique<SurfaceByIDOrder>());
+                scene.cmd_buildSurface(make_unique<SurfaceByIDOrder>());
             else if (cmd == "c2")
-                scene.cmd_buildSurface(std::make_unique<SurfaceByNearest>());
+                scene.cmd_buildSurface(make_unique<SurfaceByNearest>());
             else
-                std::cout << "Commande inconnue\n";
+                cout << "Commande inconnue\n";
             break;
         }
 
         default:
-            std::cout << "Commande inconnue\n";
+            cout << "Commande inconnue\n";
         }
     }
 
