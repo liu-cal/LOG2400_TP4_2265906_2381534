@@ -70,7 +70,7 @@ void Scene::cmd_merge_createCloud(const std::vector<int> &ids)
     for (int pid : ids)
     {
         if (pid >= 0 && pid < (int)points.size())
-            points[pid].texture += tm.get(c.textureIndex);
+            points[pid].texture = tm.get(c.textureIndex);
     }
     clouds.push_back(c);
 }

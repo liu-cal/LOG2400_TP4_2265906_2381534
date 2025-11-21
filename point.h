@@ -1,11 +1,13 @@
 #pragma once
 #include <string>
 
+using namespace std;
+
 struct Point
 {
     int id;
     int x, y;
-    std::string texture;
+    string texture;
     bool active;
 
     Point(int id_, int x_, int y_)

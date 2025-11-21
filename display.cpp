@@ -74,8 +74,10 @@ void DisplayTextures::draw(
         char t = tm.get(c.textureIndex);
         for (int pid : c.pointIds)
         {
-            if (pid >= 0 && pid < (int)points.size())
+            if (pid >= 0 && pid < (int)points.size()) {
+            if (mapTexture[pid].find(t) == string::npos) // avoid duplicate textures: npos searches for is not found
                 mapTexture[pid] += t;
+            }
         }
     }
 
