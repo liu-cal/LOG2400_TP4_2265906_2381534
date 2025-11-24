@@ -107,7 +107,6 @@ void Scene::cmd_merge_createCloud(const std::vector<int> &ids)
     char textChar = tm.get(newCloud.textureIndex);
     for (int pid : uniq)
     {
-        std::cout << pid << " ";
         if (pid >= 0 && pid < static_cast<int>(points.size()))
         {
             points[pid].texture += textChar;
@@ -179,16 +178,63 @@ bool Scene::cmd_deletePoint(int id)
     return true;
 }
 
+std::vector<int> Scene::getAllPointsInCloud(int cloudId) const
+{
+    std::vector<int> result;
+    if (cloudId < 0)
+        return result;
+
+    int cindex = globalIdToCloudIndex(cloudId);
+    if (cindex < 0 || cindex >= static_cast<int>(clouds.size()))
+    {
+        return result;
+    }
+
+    const auto &c = clouds[cindex];
+    for (int pid : c.pointIds)
+    {
+        if (pid < static_cast<int>(points.size()))
+        {
+            if (points[pid].active)
+            {
+                result.push_back(pid);
+            }
+        }
+        else
+        {
+            int cloudIndex = globalIdToCloudIndex(pid);
+            if (cloudIndex >= 0 && cloudIndex < static_cast<int>(clouds.size()))
+            {
+                auto subPoints = getAllPointsInCloud(clouds[cloudIndex].id);
+                result.insert(result.end(), subPoints.begin(), subPoints.end());
+            }
+        }
+    }
+
+    std::sort(result.begin(), result.end());
+    result.erase(std::unique(result.begin(), result.end()), result.end());
+
+    return result;
+}
+
 void Scene::cmd_buildSurface(std::unique_ptr<SurfaceBuilder> builder)
 {
     surfaces.clear();
 
     for (const auto &c : clouds)
     {
-        auto poly = builder->build(c, points);
-        if (!poly.empty())
+        auto allPointsInCloud = getAllPointsInCloud(c.id);
+
+        if (!allPointsInCloud.empty())
         {
-            surfaces.push_back(poly);
+            Cloud tempCloud(-1);
+            tempCloud.pointIds = allPointsInCloud;
+
+            auto poly = builder->build(tempCloud, points);
+            if (!poly.empty())
+            {
+                surfaces.push_back(poly);
+            }
         }
     }
 }

@@ -69,4 +69,6 @@ private:
     {
         return globalId - static_cast<int>(points.size());
     }
+
+    std::vector<int> getAllPointsInCloud(int cloudId) const;
 };

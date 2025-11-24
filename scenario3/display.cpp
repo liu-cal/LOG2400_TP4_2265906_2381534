@@ -26,7 +26,12 @@ void tracerLigne(vector<vector<string>> &grille, int x0, int y0, int x1, int y1)
                 else if (dy == 0)
                     grille[y][x] = '-';
                 else
-                    grille[y][x] = '/';
+                {
+                    if ((dx > 0 && dy > 0) || (dx < 0 && dy < 0))
+                        grille[y][x] = "/";
+                    else
+                        grille[y][x] = "\\";
+                }
             }
         }
     }
