@@ -69,18 +69,6 @@ void DisplayTextures::draw(
             mapTexture[p.id] = p.texture;
     }
 
-    for (const auto &c : clouds)
-    {
-        char t = tm.get(c.textureIndex);
-        for (int pid : c.pointIds)
-        {
-            if (pid >= 0 && pid < (int)points.size()) {
-            if (mapTexture[pid].find(t) == string::npos) // avoid duplicate textures: npos searches for is not found
-                mapTexture[pid] += t;
-            }
-        }
-    }
-
     for (const auto &p : points)
     {
         if (!p.active)
