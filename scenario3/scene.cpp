@@ -1,5 +1,6 @@
 #include "scene.h"
 #include "command.h"
+#include "node.h"
 #include <sstream>
 #include <iostream>
 #include <algorithm>
@@ -37,20 +38,22 @@ void Scene::cmd_list()
        cout << p.id << ": " << "(" << p.x << "," << p.y << ") textures: '" << p.texture << "'\n";
     }
 
-    if (!clouds.empty())
+    updateCloudsCache();
+    if (!cloudsCache.empty())
     {
-        for (const auto &c : clouds)
+        for (const auto &c : cloudsCache)
         {
            cout << c.id << ": Nuage '" << tm.get(c.textureIndex) << "' contient les points: ";
-            for (size_t i = 0; i < c.pointIds.size(); i++)
+            auto pointIds = c.pointIds;
+            for (size_t i = 0; i < pointIds.size(); i++)
             {
-                if (i == c.pointIds.size() - 1)
+                if (i == pointIds.size() - 1)
                 {
-                   cout << c.pointIds[i];
+                   cout << pointIds[i];
                 }
                 else
                 {
-                   cout << c.pointIds[i] << ", ";
+                   cout << pointIds[i] << ", ";
                 }
             }
            cout << "\n";
@@ -60,72 +63,32 @@ void Scene::cmd_list()
 
 void Scene::cmd_display(unique_ptr<DisplayStrategy> dsp)
 {
-    dsp->draw(points, clouds, surfaces, tm);
+    updateCloudsCache();
+    dsp->draw(points, cloudsCache, surfaces, tm);
 }
 
 void Scene::cmd_merge_createCloud(const vector<int> &ids)
 {
-   vector<int> texturePoints;
-    texturePoints.reserve(ids.size() * 2);
-
+    auto newCloudNode = make_unique<CloudNode>(nextCloudId++);
+    newCloudNode->setTextureIndex(cloudNodes.size() % (tm.count() ? tm.count() : 1));
+    
+    char textChar = tm.get(newCloudNode->getTextureIndex());
+    
     for (int gid : ids)
     {
         if (gid < 0)
-        {
             continue;
-        }
-        if (gid < static_cast<int>(points.size()))
+            
+        auto node = createNodeFromGlobalId(gid);
+        if (node)
         {
-            if (points[gid].active)
-            {
-                texturePoints.push_back(gid);
-            }
-        }
-        else
-        {
-            int cindex = globalIdToCloudIndex(gid);
-            if (cindex >= 0 && cindex < static_cast<int>(clouds.size()))
-            {
-                texturePoints.push_back(gid);
-            }
+            newCloudNode->addChild(move(node));
         }
     }
-
-   vector<int> uniq;
-    uniq.reserve(texturePoints.size());
-    for (int p : texturePoints)
-    {
-        if (find(uniq.begin(), uniq.end(), p) == uniq.end())
-        {
-            uniq.push_back(p);
-        }
-    }
-
-    Cloud newCloud(nextCloudId++);
-    newCloud.pointIds = uniq;
-    newCloud.textureIndex = clouds.size() % (tm.count() ? tm.count() : 1);
-
-    char textChar = tm.get(newCloud.textureIndex);
-    for (int pid : uniq)
-    {
-        if (pid >= 0 && pid < static_cast<int>(points.size()))
-        {
-            points[pid].texture += textChar;
-        }
-        else
-        {
-            int cindex = globalIdToCloudIndex(pid);
-            for (int pid : clouds[cindex].pointIds)
-            {
-                if (points[pid].active)
-                {
-                    points[pid].texture += textChar;
-                }
-            }
-        }
-    }
-
-    clouds.push_back(newCloud);
+    
+    newCloudNode->applyTexture(textChar, points);
+    
+    cloudNodes.push_back(move(newCloudNode));
 }
 
 bool Scene::cmd_movePoint(int id, int nx, int ny)
@@ -148,52 +111,13 @@ bool Scene::cmd_deletePoint(int id)
     return true;
 }
 
-vector<int> Scene::getAllPointsInCloud(int cloudId) const
-{
-   vector<int> result;
-    if (cloudId < 0)
-        return result;
-
-    int cindex = globalIdToCloudIndex(cloudId);
-    if (cindex < 0 || cindex >= static_cast<int>(clouds.size()))
-    {
-        return result;
-    }
-
-    const auto &c = clouds[cindex];
-    for (int pid : c.pointIds)
-    {
-        if (pid < static_cast<int>(points.size()))
-        {
-            if (points[pid].active)
-            {
-                result.push_back(pid);
-            }
-        }
-        else
-        {
-            int cloudIndex = globalIdToCloudIndex(pid);
-            if (cloudIndex >= 0 && cloudIndex < static_cast<int>(clouds.size()))
-            {
-                auto subPoints = getAllPointsInCloud(clouds[cloudIndex].id);
-                result.insert(result.end(), subPoints.begin(), subPoints.end());
-            }
-        }
-    }
-
-   sort(result.begin(), result.end());
-    result.erase(unique(result.begin(), result.end()), result.end());
-
-    return result;
-}
-
 void Scene::cmd_buildSurface(unique_ptr<SurfaceBuilder> builder)
 {
     surfaces.clear();
 
-    for (const auto &c : clouds)
+    for (const auto &cloudNode : cloudNodes)
     {
-        auto allPointsInCloud = getAllPointsInCloud(c.id);
+        auto allPointsInCloud = cloudNode->getAllPointIds(points);
 
         if (!allPointsInCloud.empty())
         {
@@ -217,4 +141,70 @@ void Scene::undo()
 void Scene::redo()
 {
     commandManager.redo();
+}
+
+const vector<Cloud> &Scene::getClouds() const
+{
+    updateCloudsCache();
+    return cloudsCache;
+}
+
+CloudNode* Scene::findCloudNodeById(int cloudId)
+{
+    for (auto& cloudNode : cloudNodes)
+    {
+        if (cloudNode->getId() == cloudId)
+        {
+            return cloudNode.get();
+        }
+    }
+    return nullptr;
+}
+
+const CloudNode* Scene::findCloudNodeById(int cloudId) const
+{
+    for (const auto& cloudNode : cloudNodes)
+    {
+        if (cloudNode->getId() == cloudId)
+        {
+            return cloudNode.get();
+        }
+    }
+    return nullptr;
+}
+
+unique_ptr<Node> Scene::createNodeFromGlobalId(int globalId)
+{
+    if (globalId < 0)
+        return nullptr;
+        
+    if (globalId < static_cast<int>(points.size()))
+    {
+        if (points[globalId].active)
+        {
+            return make_unique<PointNode>(globalId);
+        }
+    }
+    else
+    {
+        int cindex = globalIdToCloudIndex(globalId);
+        if (cindex >= 0 && cindex < static_cast<int>(cloudNodes.size()))
+        {
+            const CloudNode* existingCloud = cloudNodes[cindex].get();
+            if (existingCloud)
+            {
+                return existingCloud->clone();
+            }
+        }
+    }
+    return nullptr;
+}
+
+void Scene::updateCloudsCache() const
+{
+    cloudsCache.clear();
+    for (const auto& cloudNode : cloudNodes)
+    {
+        cloudsCache.push_back(Cloud::fromCloudNode(*cloudNode, points));
+    }
 }

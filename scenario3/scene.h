@@ -3,6 +3,7 @@
 #include <memory>
 #include "point.h"
 #include "cloud.h"
+#include "node.h"
 #include "textureManager.h"
 #include "display.h"
 #include "surface.h"
@@ -28,15 +29,17 @@ public:
     void redo();
 
     const vector<Point> &getPoints() const { return points; }
-    const vector<Cloud> &getClouds() const { return clouds; }
+    const vector<Cloud> &getClouds() const; 
+    const vector<unique_ptr<CloudNode>> &getCloudNodes() const { return cloudNodes; }
     TextureManager &getTextureManager() { return tm; }
 
     vector<Point> &getPointsMutable() { return points; }
-    vector<Cloud> &getCloudsMutable() { return clouds; }
+    vector<unique_ptr<CloudNode>> &getCloudNodesMutable() { return cloudNodes; }
 
 private:
     vector<Point> points;
-    vector<Cloud> clouds;
+    vector<unique_ptr<CloudNode>> cloudNodes;  
+    mutable vector<Cloud> cloudsCache; 
     vector<vector<int>> surfaces;
     TextureManager tm;
     int nextCloudId = 0;
@@ -48,5 +51,10 @@ private:
         return globalId - static_cast<int>(points.size());
     }
 
-    vector<int> getAllPointsInCloud(int cloudId) const;
+    CloudNode* findCloudNodeById(int cloudId);
+    const CloudNode* findCloudNodeById(int cloudId) const;
+    
+    unique_ptr<Node> createNodeFromGlobalId(int globalId);
+    
+    void updateCloudsCache() const;
 };

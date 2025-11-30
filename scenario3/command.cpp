@@ -1,5 +1,6 @@
 #include "command.h"
 #include "scene.h"
+#include "node.h"
 #include <algorithm>
 
 void CommandManager::executeCommand(unique_ptr<ICommand> command)
@@ -87,7 +88,7 @@ void DeleteCommand::execute()
         return;
 
     auto& points = scene->getPointsMutable();
-    auto& clouds = scene->getCloudsMutable();
+    auto& cloudNodes = scene->getCloudNodesMutable();
 
     if (pointId < 0 || pointId >= static_cast<int>(points.size()) || !points[pointId].active)
         return;
@@ -96,14 +97,14 @@ void DeleteCommand::execute()
     points[pointId].active = false;
 
     cloudsWithPoint.clear();
-    for (size_t ci = 0; ci < clouds.size(); ++ci)
+    for (size_t ci = 0; ci < cloudNodes.size(); ++ci)
     {
-        auto& c = clouds[ci];
-        auto it = find(c.pointIds.begin(), c.pointIds.end(), pointId);
-        if (it != c.pointIds.end())
+        auto& cloudNode = cloudNodes[ci];
+        if (cloudNode->containsPointId(pointId, points))
         {
             cloudsWithPoint.push_back(static_cast<int>(ci));
-            c.pointIds.erase(remove(c.pointIds.begin(), c.pointIds.end(), pointId), c.pointIds.end());
+            // Remove the PointNode from this CloudNode
+            cloudNode->removeChild(pointId);
         }
     }
 
@@ -116,7 +117,7 @@ void DeleteCommand::undo()
         return;
 
     auto& points = scene->getPointsMutable();
-    auto& clouds = scene->getCloudsMutable();
+    auto& cloudNodes = scene->getCloudNodesMutable();
 
     if (pointId >= 0 && pointId < static_cast<int>(points.size()))
     {
@@ -125,9 +126,9 @@ void DeleteCommand::undo()
 
         for (int ci : cloudsWithPoint)
         {
-            if (ci >= 0 && ci < static_cast<int>(clouds.size()))
+            if (ci >= 0 && ci < static_cast<int>(cloudNodes.size()))
             {
-                clouds[ci].pointIds.push_back(pointId);
+                cloudNodes[ci]->addChild(make_unique<PointNode>(pointId));
             }
         }
     }
@@ -139,7 +140,7 @@ void DeleteCommand::redo()
         return;
 
     auto& points = scene->getPointsMutable();
-    auto& clouds = scene->getCloudsMutable();
+    auto& cloudNodes = scene->getCloudNodesMutable();
 
     if (pointId >= 0 && pointId < static_cast<int>(points.size()))
     {
@@ -147,10 +148,9 @@ void DeleteCommand::redo()
 
         for (int ci : cloudsWithPoint)
         {
-            if (ci >= 0 && ci < static_cast<int>(clouds.size()))
+            if (ci >= 0 && ci < static_cast<int>(cloudNodes.size()))
             {
-                auto& vec = clouds[ci].pointIds;
-                vec.erase(remove(vec.begin(), vec.end(), pointId), vec.end());
+                cloudNodes[ci]->removeChild(pointId);
             }
         }
     }
