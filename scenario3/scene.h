@@ -6,69 +6,47 @@
 #include "textureManager.h"
 #include "display.h"
 #include "surface.h"
+#include "command.h"
 
-struct Action
-{
-    enum Type
-    {
-        MOVE,
-        DELETE
-    } type;
-
-    int pointId;
-
-    int oldX, oldY;
-    int newX, newY;
-
-    Point deletedPoint;
-    std::vector<int> cloudsWithPoint;
-
-    Action()
-        : type(MOVE),
-          pointId(-1),
-          oldX(0), oldY(0),
-          newX(0), newY(0),
-          deletedPoint(-1, 0, 0),
-          cloudsWithPoint()
-    {
-    }
-};
+using namespace std;
 
 class Scene
 {
 public:
     Scene() = default;
 
-    void initFromArgsString(const std::string &args);
+    void initFromArgsString(const string &args);
 
     void cmd_list();
-    void cmd_display(std::unique_ptr<DisplayStrategy> dsp);
-    void cmd_merge_createCloud(const std::vector<int> &ids);
+    void cmd_display(unique_ptr<DisplayStrategy> dsp);
+    void cmd_merge_createCloud(const vector<int> &ids);
     bool cmd_movePoint(int id, int nx, int ny);
     bool cmd_deletePoint(int id);
-    void cmd_buildSurface(std::unique_ptr<SurfaceBuilder> builder);
+    void cmd_buildSurface(unique_ptr<SurfaceBuilder> builder);
 
     void undo();
     void redo();
 
-    const std::vector<Point> &getPoints() const { return points; }
-    const std::vector<Cloud> &getClouds() const { return clouds; }
+    const vector<Point> &getPoints() const { return points; }
+    const vector<Cloud> &getClouds() const { return clouds; }
     TextureManager &getTextureManager() { return tm; }
 
+    vector<Point> &getPointsMutable() { return points; }
+    vector<Cloud> &getCloudsMutable() { return clouds; }
+
 private:
-    std::vector<Point> points;
-    std::vector<Cloud> clouds;
-    std::vector<std::vector<int>> surfaces;
+    vector<Point> points;
+    vector<Cloud> clouds;
+    vector<vector<int>> surfaces;
     TextureManager tm;
     int nextCloudId = 0;
 
-    std::vector<Action> undoStack;
-    std::vector<Action> redoStack;
+    CommandManager commandManager;
 
     int globalIdToCloudIndex(int globalId) const
     {
         return globalId - static_cast<int>(points.size());
     }
 
-    std::vector<int> getAllPointsInCloud(int cloudId) const;
+    vector<int> getAllPointsInCloud(int cloudId) const;
 };

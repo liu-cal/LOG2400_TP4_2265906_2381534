@@ -1,20 +1,21 @@
 #include "scene.h"
+#include "command.h"
 #include <sstream>
 #include <iostream>
 #include <algorithm>
 
-void Scene::initFromArgsString(const std::string &ligne)
+void Scene::initFromArgsString(const string &args)
 {
-    std::istringstream iss(ligne);
-    std::string token;
+   istringstream iss(args);
+   string token;
     int idCounter = 0;
     while (iss >> token)
     {
         if (token.size() >= 3 && token.front() == '(' && token.back() == ')')
         {
             token = token.substr(1, token.size() - 2);
-            std::replace(token.begin(), token.end(), ',', ' ');
-            std::istringstream pair(token);
+           replace(token.begin(), token.end(), ',', ' ');
+           istringstream pair(token);
             int x, y;
             if (pair >> x >> y)
             {
@@ -28,43 +29,43 @@ void Scene::initFromArgsString(const std::string &ligne)
 
 void Scene::cmd_list()
 {
-    std::cout << "Liste:\n";
+   cout << "Liste:\n";
     for (const auto &p : points)
     {
         if (!p.active)
             continue;
-        std::cout << p.id << ": " << "(" << p.x << "," << p.y << ") textures: '" << p.texture << "'\n";
+       cout << p.id << ": " << "(" << p.x << "," << p.y << ") textures: '" << p.texture << "'\n";
     }
 
     if (!clouds.empty())
     {
         for (const auto &c : clouds)
         {
-            std::cout << c.id << ": Nuage '" << tm.get(c.textureIndex) << "' contient les points: ";
+           cout << c.id << ": Nuage '" << tm.get(c.textureIndex) << "' contient les points: ";
             for (size_t i = 0; i < c.pointIds.size(); i++)
             {
                 if (i == c.pointIds.size() - 1)
                 {
-                    std::cout << c.pointIds[i];
+                   cout << c.pointIds[i];
                 }
                 else
                 {
-                    std::cout << c.pointIds[i] << ", ";
+                   cout << c.pointIds[i] << ", ";
                 }
             }
-            std::cout << "\n";
+           cout << "\n";
         }
     }
 }
 
-void Scene::cmd_display(std::unique_ptr<DisplayStrategy> dsp)
+void Scene::cmd_display(unique_ptr<DisplayStrategy> dsp)
 {
     dsp->draw(points, clouds, surfaces, tm);
 }
 
-void Scene::cmd_merge_createCloud(const std::vector<int> &ids)
+void Scene::cmd_merge_createCloud(const vector<int> &ids)
 {
-    std::vector<int> texturePoints;
+   vector<int> texturePoints;
     texturePoints.reserve(ids.size() * 2);
 
     for (int gid : ids)
@@ -90,11 +91,11 @@ void Scene::cmd_merge_createCloud(const std::vector<int> &ids)
         }
     }
 
-    std::vector<int> uniq;
+   vector<int> uniq;
     uniq.reserve(texturePoints.size());
     for (int p : texturePoints)
     {
-        if (std::find(uniq.begin(), uniq.end(), p) == uniq.end())
+        if (find(uniq.begin(), uniq.end(), p) == uniq.end())
         {
             uniq.push_back(p);
         }
@@ -132,19 +133,8 @@ bool Scene::cmd_movePoint(int id, int nx, int ny)
     if (id < 0 || id >= (int)points.size() || !points[id].active)
         return false;
 
-    Action act;
-    act.type = Action::MOVE;
-    act.pointId = id;
-    act.oldX = points[id].x;
-    act.oldY = points[id].y;
-    act.newX = nx;
-    act.newY = ny;
-
-    points[id].x = nx;
-    points[id].y = ny;
-
-    undoStack.push_back(act);
-    redoStack.clear();
+    auto command =make_unique<MoveCommand>(this, id, nx, ny);
+    commandManager.executeCommand(move(command));
     return true;
 }
 
@@ -153,34 +143,14 @@ bool Scene::cmd_deletePoint(int id)
     if (id < 0 || id >= (int)points.size() || !points[id].active)
         return false;
 
-    Action act;
-    act.type = Action::DELETE;
-    act.pointId = id;
-    act.deletedPoint = points[id];
-    act.cloudsWithPoint.clear();
-
-    points[id].active = false;
-
-    for (size_t ci = 0; ci < clouds.size(); ++ci)
-    {
-        auto &c = clouds[ci];
-        auto it = std::find(c.pointIds.begin(), c.pointIds.end(), id);
-        if (it != c.pointIds.end())
-        {
-            act.cloudsWithPoint.push_back(static_cast<int>(ci));
-            c.pointIds.erase(std::remove(c.pointIds.begin(), c.pointIds.end(), id), c.pointIds.end());
-        }
-    }
-
-    undoStack.push_back(act);
-    redoStack.clear();
-
+    auto command =make_unique<DeleteCommand>(this, id);
+    commandManager.executeCommand(move(command));
     return true;
 }
 
-std::vector<int> Scene::getAllPointsInCloud(int cloudId) const
+vector<int> Scene::getAllPointsInCloud(int cloudId) const
 {
-    std::vector<int> result;
+   vector<int> result;
     if (cloudId < 0)
         return result;
 
@@ -211,13 +181,13 @@ std::vector<int> Scene::getAllPointsInCloud(int cloudId) const
         }
     }
 
-    std::sort(result.begin(), result.end());
-    result.erase(std::unique(result.begin(), result.end()), result.end());
+   sort(result.begin(), result.end());
+    result.erase(unique(result.begin(), result.end()), result.end());
 
     return result;
 }
 
-void Scene::cmd_buildSurface(std::unique_ptr<SurfaceBuilder> builder)
+void Scene::cmd_buildSurface(unique_ptr<SurfaceBuilder> builder)
 {
     surfaces.clear();
 
@@ -241,76 +211,10 @@ void Scene::cmd_buildSurface(std::unique_ptr<SurfaceBuilder> builder)
 
 void Scene::undo()
 {
-    if (undoStack.empty())
-    {
-        return;
-    }
-
-    Action act = undoStack.back();
-    undoStack.pop_back();
-
-    if (act.type == Action::MOVE)
-    {
-        if (act.pointId >= 0 && act.pointId < static_cast<int>(points.size()))
-        {
-            points[act.pointId].x = act.oldX;
-            points[act.pointId].y = act.oldY;
-        }
-    }
-    else if (act.type == Action::DELETE)
-    {
-        if (act.pointId >= 0 && act.pointId < static_cast<int>(points.size()))
-        {
-            points[act.pointId] = act.deletedPoint;
-            points[act.pointId].active = true;
-
-            for (int ci : act.cloudsWithPoint)
-            {
-                if (ci >= 0 && ci < static_cast<int>(clouds.size()))
-                {
-                    clouds[ci].pointIds.push_back(act.pointId);
-                }
-            }
-        }
-    }
-
-    redoStack.push_back(act);
+    commandManager.undo();
 }
 
 void Scene::redo()
 {
-    if (redoStack.empty())
-    {
-        return;
-    }
-
-    Action act = redoStack.back();
-    redoStack.pop_back();
-
-    if (act.type == Action::MOVE)
-    {
-        if (act.pointId >= 0 && act.pointId < static_cast<int>(points.size()))
-        {
-            points[act.pointId].x = act.newX;
-            points[act.pointId].y = act.newY;
-        }
-    }
-    else if (act.type == Action::DELETE)
-    {
-        if (act.pointId >= 0 && act.pointId < static_cast<int>(points.size()))
-        {
-            points[act.pointId].active = false;
-
-            for (int ci : act.cloudsWithPoint)
-            {
-                if (ci >= 0 && ci < static_cast<int>(clouds.size()))
-                {
-                    auto &vec = clouds[ci].pointIds;
-                    vec.erase(std::remove(vec.begin(), vec.end(), act.pointId), vec.end());
-                }
-            }
-        }
-    }
-
-    undoStack.push_back(act);
+    commandManager.redo();
 }

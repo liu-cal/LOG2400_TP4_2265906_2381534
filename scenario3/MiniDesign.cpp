@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
     SetConsoleCP(CP_UTF8);
 
     string args;
-    // On accepte des points en entrée.
     if (argc > 1)
     {
         ostringstream oss;
@@ -30,19 +29,12 @@ int main(int argc, char *argv[])
         getline(cin, args);
     }
 
-    // Voici des fonctions utiles pour réaliser le TP.
-    // TODO: Il faudrait les placer dans des classes appropriées.
     Scene scene;
     scene.initFromArgsString(args);
 
-    // vector<Point> points = creerPoints(args);
-    // imprimerGrille(points);
 
-    // Ce sont différentes textures possibles. Seules les 2 premières sont utilisées dans les scénarios du TP.
-    // vector<char> texturesNuages = {'o', '#', '$'};
     string cmd;
 
-    // Menu
     while (true)
     {
         cout << "\nCommandes:\n"
