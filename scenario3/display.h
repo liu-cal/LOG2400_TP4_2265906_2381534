@@ -1,11 +1,12 @@
 #pragma once
 #include "point.h"
 #include "cloud.h"
+#include "grid.h"
+#include <vector>
 
 using namespace std;
 
-const int WIDTH = 30;
-const int HEIGHT = 20;
+class TextureManager;
 
 class DisplayStrategy
 {
@@ -15,7 +16,7 @@ public:
         const vector<Point> &points,
         const vector<Cloud> &clouds,
         const vector<vector<int>> &surfaces,
-        const class TextureManager &tm) = 0;
+        const TextureManager &tm) = 0;
 };
 
 class DisplayTextures : public DisplayStrategy
@@ -25,7 +26,7 @@ public:
         const vector<Point> &points,
         const vector<Cloud> &clouds,
         const vector<vector<int>> &surfaces,
-        const class TextureManager &tm) override;
+        const TextureManager &tm) override;
 };
 
 class DisplayIDs : public DisplayStrategy
