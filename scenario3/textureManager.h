@@ -4,7 +4,7 @@
 
 class TextureManager
 {
-    std::vector<char> textures;
+    vector<char> textures;
 
 public:
     TextureManager()
@@ -23,7 +23,7 @@ public:
 
     void removeTexture(char c)
     {
-        textures.erase(std::remove(textures.begin(), textures.end(), c), textures.end());
+        textures.erase(remove(textures.begin(), textures.end(), c), textures.end());
     }
     size_t count() const { return textures.size(); }
 };

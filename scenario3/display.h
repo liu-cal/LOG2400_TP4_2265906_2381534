@@ -4,8 +4,8 @@
 
 using namespace std;
 
-const int LARGEUR = 30;
-const int HAUTEUR = 20;
+const int WIDTH = 30;
+const int HEIGHT = 20;
 
 class DisplayStrategy
 {

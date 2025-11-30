@@ -3,21 +3,23 @@
 #include "cloud.h"
 #include "point.h"
 
+using namespace std;
+
 class SurfaceBuilder
 {
 public:
     virtual ~SurfaceBuilder() = default;
-    virtual std::vector<int> build(const Cloud &cloud, const std::vector<Point> &allPoints) = 0;
+    virtual vector<int> build(const Cloud &cloud, const vector<Point> &allPoints) = 0;
 };
 
 class SurfaceByIDOrder : public SurfaceBuilder
 {
 public:
-    std::vector<int> build(const Cloud &cloud, const std::vector<Point> &allPoints) override;
+    vector<int> build(const Cloud &cloud, const vector<Point> &allPoints) override;
 };
 
 class SurfaceByNearest : public SurfaceBuilder
 {
 public:
-    std::vector<int> build(const Cloud &cloud, const std::vector<Point> &allPoints) override;
+    vector<int> build(const Cloud &cloud, const vector<Point> &allPoints) override;
 };

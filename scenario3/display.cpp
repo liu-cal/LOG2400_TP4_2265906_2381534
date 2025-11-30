@@ -7,7 +7,7 @@
 
 using namespace std;
 
-void tracerLigne(vector<vector<string>> &grille, int x0, int y0, int x1, int y1)
+void traceLine(vector<vector<string>> &grid, int x0, int y0, int x1, int y1)
 {
     int dx = x1 - x0;
     int dy = y1 - y0;
@@ -17,28 +17,28 @@ void tracerLigne(vector<vector<string>> &grille, int x0, int y0, int x1, int y1)
         double t = (double)i / steps;
         int x = round(x0 + t * dx);
         int y = round(y0 + t * dy);
-        if (x >= 0 && x < LARGEUR && y >= 0 && y < HAUTEUR)
+        if (x >= 0 && x < WIDTH && y >= 0 && y < HEIGHT)
         {
-            if (grille[y][x] == " ")
+            if (grid[y][x] == " ")
             {
                 if (dx == 0)
-                    grille[y][x] = '|';
+                    grid[y][x] = '|';
                 else if (dy == 0)
-                    grille[y][x] = '-';
+                    grid[y][x] = '-';
                 else
                 {
                     if ((dx > 0 && dy > 0) || (dx < 0 && dy < 0))
-                        grille[y][x] = "/";
+                        grid[y][x] = "/";
                     else
-                        grille[y][x] = "\\";
+                        grid[y][x] = "\\";
                 }
             }
         }
     }
 }
 
-void tracerSurfaces(
-    vector<vector<string>> &grille,
+void traceSurfaces(
+    vector<vector<string>> &grid,
     const vector<vector<int>> &surfaces,
     const vector<Point> &points)
 {
@@ -55,7 +55,7 @@ void tracerSurfaces(
             const Point &a = points[idA];
             const Point &b = points[idB];
 
-            tracerLigne(grille, a.x, a.y, b.x, b.y);
+            traceLine(grid, a.x, a.y, b.x, b.y);
         }
     }
 }
@@ -66,7 +66,7 @@ void DisplayTextures::draw(
     const vector<vector<int>> &surfaces,
     const TextureManager &tm)
 {
-    vector<vector<string>> grille(HAUTEUR, vector<string>(LARGEUR, " "));
+    vector<vector<string>> grid(HEIGHT, vector<string>(WIDTH, " "));
     vector<string> mapTexture(points.size(), "");
     for (const auto &p : points)
     {
@@ -78,14 +78,14 @@ void DisplayTextures::draw(
     {
         if (!p.active)
             continue;
-        if (p.x >= 0 && p.x < LARGEUR && p.y >= 0 && p.y < HAUTEUR)
-            grille[p.y][p.x] = (mapTexture[p.id] == "" ? "." : mapTexture[p.id]);
+        if (p.x >= 0 && p.x < WIDTH && p.y >= 0 && p.y < HEIGHT)
+            grid[p.y][p.x] = (mapTexture[p.id] == "" ? "." : mapTexture[p.id]);
     }
 
-    for (int y = HAUTEUR - 1; y >= 0; --y)
+    for (int y = HEIGHT - 1; y >= 0; --y)
     {
-        for (int x = 0; x < LARGEUR; ++x)
-            cout << grille[y][x];
+        for (int x = 0; x < WIDTH; ++x)
+            cout << grid[y][x];
         cout << '\n';
     }
 }
@@ -96,22 +96,22 @@ void DisplayIDs::draw(
     const vector<vector<int>> &surfaces,
     const TextureManager &tm)
 {
-    vector<vector<string>> grille(HAUTEUR, vector<string>(LARGEUR, " "));
+    vector<vector<string>> grid(HEIGHT, vector<string>(WIDTH, " "));
     for (const auto &p : points)
     {
         if (!p.active)
             continue;
         char ch = (p.id < 10 ? char('0' + p.id) : '*');
-        if (p.x >= 0 && p.x < LARGEUR && p.y >= 0 && p.y < HAUTEUR)
-            grille[p.y][p.x] = ch;
+        if (p.x >= 0 && p.x < WIDTH && p.y >= 0 && p.y < HEIGHT)
+            grid[p.y][p.x] = ch;
     }
 
-    tracerSurfaces(grille, surfaces, points);
+    traceSurfaces(grid, surfaces, points);
 
-    for (int y = HAUTEUR - 1; y >= 0; --y)
+    for (int y = HEIGHT - 1; y >= 0; --y)
     {
-        for (int x = 0; x < LARGEUR; ++x)
-            cout << grille[y][x];
+        for (int x = 0; x < WIDTH; ++x)
+            cout << grid[y][x];
         cout << '\n';
     }
 }
