@@ -103,7 +103,6 @@ void DeleteCommand::execute()
         if (cloudNode->containsPointId(pointId, points))
         {
             cloudsWithPoint.push_back(static_cast<int>(ci));
-            // Remove the PointNode from this CloudNode
             cloudNode->removeChild(pointId);
         }
     }

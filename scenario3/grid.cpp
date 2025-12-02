@@ -95,17 +95,6 @@ void Grid::print() const
     }
 }
 
-void Grid::clear()
-{
-    for (int i = 0; i < height; ++i)
-    {
-        for (int j = 0; j < width; ++j)
-        {
-            grid[i][j] = " ";
-        }
-    }
-}
-
 bool Grid::isValidPosition(int x, int y) const
 {
     return x >= 0 && x < width && y >= 0 && y < height;

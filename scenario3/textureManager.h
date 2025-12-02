@@ -19,11 +19,5 @@ public:
         return textures[idx % textures.size()];
     }
 
-    void addTexture(char c) { textures.push_back(c); }
-
-    void removeTexture(char c)
-    {
-        textures.erase(remove(textures.begin(), textures.end(), c), textures.end());
-    }
     size_t count() const { return textures.size(); }
 };

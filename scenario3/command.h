@@ -20,8 +20,6 @@ public:
     void executeCommand(unique_ptr<ICommand> command);
     void undo();
     void redo();
-    bool canUndo() const { return !undoStack.empty(); }
-    bool canRedo() const { return !redoStack.empty(); }
 
 private:
     vector<unique_ptr<ICommand>> undoStack;

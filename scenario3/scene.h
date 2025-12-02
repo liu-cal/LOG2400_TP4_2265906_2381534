@@ -28,10 +28,7 @@ public:
     void undo();
     void redo();
 
-    const vector<Point> &getPoints() const { return points; }
     const vector<Cloud> &getClouds() const; 
-    const vector<unique_ptr<CloudNode>> &getCloudNodes() const { return cloudNodes; }
-    TextureManager &getTextureManager() { return tm; }
 
     vector<Point> &getPointsMutable() { return points; }
     vector<unique_ptr<CloudNode>> &getCloudNodesMutable() { return cloudNodes; }
@@ -50,9 +47,6 @@ private:
     {
         return globalId - static_cast<int>(points.size());
     }
-
-    CloudNode* findCloudNodeById(int cloudId);
-    const CloudNode* findCloudNodeById(int cloudId) const;
     
     unique_ptr<Node> createNodeFromGlobalId(int globalId);
     

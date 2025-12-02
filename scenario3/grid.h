@@ -22,11 +22,6 @@ public:
     void traceSurfaces(const vector<vector<int>>& surfaces, const vector<Point>& points);
     
     void print() const;
-    
-    void clear();
-    
-    int getWidth() const { return width; }
-    int getHeight() const { return height; }
 
 private:
     vector<vector<string>> grid;

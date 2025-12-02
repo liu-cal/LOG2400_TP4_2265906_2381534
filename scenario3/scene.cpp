@@ -38,26 +38,22 @@ void Scene::cmd_list()
        cout << p.id << ": " << "(" << p.x << "," << p.y << ") textures: '" << p.texture << "'\n";
     }
 
-    updateCloudsCache();
-    if (!cloudsCache.empty())
+    for (const auto &cloudNode : cloudNodes)
     {
-        for (const auto &c : cloudsCache)
+        cout << cloudNode->getId() << ": Nuage '" << tm.get(cloudNode->getTextureIndex()) << "' contient les éléments: ";
+        const auto &children = cloudNode->getChildren();
+        for (size_t i = 0; i < children.size(); i++)
         {
-           cout << c.id << ": Nuage '" << tm.get(c.textureIndex) << "' contient les points: ";
-            auto pointIds = c.pointIds;
-            for (size_t i = 0; i < pointIds.size(); i++)
+            if (i == children.size() - 1)
             {
-                if (i == pointIds.size() - 1)
-                {
-                   cout << pointIds[i];
-                }
-                else
-                {
-                   cout << pointIds[i] << ", ";
-                }
+                cout << children[i]->getId();
             }
-           cout << "\n";
+            else
+            {
+                cout << children[i]->getId() << " ";
+            }
         }
+        cout << "\n";
     }
 }
 
@@ -147,30 +143,6 @@ const vector<Cloud> &Scene::getClouds() const
 {
     updateCloudsCache();
     return cloudsCache;
-}
-
-CloudNode* Scene::findCloudNodeById(int cloudId)
-{
-    for (auto& cloudNode : cloudNodes)
-    {
-        if (cloudNode->getId() == cloudId)
-        {
-            return cloudNode.get();
-        }
-    }
-    return nullptr;
-}
-
-const CloudNode* Scene::findCloudNodeById(int cloudId) const
-{
-    for (const auto& cloudNode : cloudNodes)
-    {
-        if (cloudNode->getId() == cloudId)
-        {
-            return cloudNode.get();
-        }
-    }
-    return nullptr;
 }
 
 unique_ptr<Node> Scene::createNodeFromGlobalId(int globalId)

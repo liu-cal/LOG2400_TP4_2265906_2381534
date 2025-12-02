@@ -4,7 +4,6 @@
 #include <vector>
 #include "scene.h"
 #include "display.h"
-#include "display.h"
 #include "surface.h"
 #include <windows.h>
 
